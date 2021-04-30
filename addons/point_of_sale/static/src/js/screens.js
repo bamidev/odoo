@@ -1844,7 +1844,11 @@ var PaymentScreenWidget = ScreenWidget.extend({
             this.inputbuffer = newbuf;
             var order = this.pos.get_order();
             if (order.selected_paymentline) {
-                var amount = this.inputbuffer;
+
+                // Don't edit finalized payment lines
+                if (order.selected_paymentline.finalized)
+                    return;
+                var amount = newbuf;
 
                 if (this.inputbuffer !== "-") {
                     amount = field_utils.parse.float(this.inputbuffer);
@@ -1899,7 +1903,7 @@ var PaymentScreenWidget = ScreenWidget.extend({
             if (lines[i].cid === cid) {
                 this.pos.get_order().select_paymentline(lines[i]);
                 this.reset_input();
-                this.render_paymentlines();
+                //this.render_paymentlines();
                 return;
             }
         }
@@ -2071,10 +2075,13 @@ var PaymentScreenWidget = ScreenWidget.extend({
         var order = this.pos.get_order();
         if (!order) {
             return;
-        } else if (order.is_paid()) {
-            self.$('.next').addClass('highlight');
-        }else{
-            self.$('.next').removeClass('highlight');
+        } else {
+            self.render_paymentlines();
+            if (order.is_paid()) {
+                self.$('.next').addClass('highlight');
+            } else {
+                self.$('.next').removeClass('highlight');
+            }
         }
     },
 

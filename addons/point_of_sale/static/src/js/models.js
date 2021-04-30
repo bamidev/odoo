@@ -1930,6 +1930,13 @@ exports.Paymentline = Backbone.Model.extend({
         this.order = options.order;
         this.amount = 0;
         this.selected = false;
+        // If true, this payment line should not be edited, removed or
+        // reinitiated again.
+        this.finalized = false;
+        // If true, this payment line is considered as being paid.
+        // Cash payments are always considered as being paid already.
+        this.paid = options.cashregister !== undefined ? (options.cashregister.journal.type == 'cash') : false;
+
         if (options.json) {
             this.init_from_JSON(options.json);
             return;
@@ -2537,7 +2544,10 @@ exports.Order = Backbone.Model.extend({
     },
     get_total_paid: function() {
         return round_pr(this.paymentlines.reduce((function(sum, paymentLine) {
-            return sum + paymentLine.get_amount();
+            if (paymentLine.paid)
+                return sum + paymentLine.get_amount();
+            else
+                return sum
         }), 0), this.pos.currency.rounding);
     },
     get_tax_details: function(){
